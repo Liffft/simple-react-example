@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Basic Example with JSX</title>
+  </head>
+  <body>
+    <div id="container">
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>
+    <script src="https://npmcdn.com/react-router/umd/ReactRouter.min.js"></script>
+    <script type="text/babel">
+      var appState = {
+        authenticatedUser: null,
+        patients: [{firstName: "George", lastName: "Washington", tests:[]}]
+      };
+
+      // new_patient.js
+      var NewPatient = React.createClass({
+
+        // initial state is based on application state
+        getInitialState: function() {
+            return {patients: appState.patients };
+        },
+
+        // when navigating away, updating application state to match local state
+        componentWillUnmount: function() {
+            appState.patients = this.state.patients;
+        },
+           
+        // update local state to add a patient
+        createPatient: function() {
+            var patients = this.state.patients;
+            patients.push({
+              firstName: this.refs.firstName.value, 
+              lastName: this.refs.lastName.value,
+              // this would normally be done by a backend, we just do it here.
+              tests: [{type: "blood"}, {type: "CT Scan"}, {type: "Algebra"}]
+            });
+            this.setState ({
+              patients: patients,
+            });
+        },
+
+        render: function() {
+          return <div>
+            First Name
+            <input type="text" ref="firstName"></input>
+            Last Name
+            <input type="text" ref="lastName"></input>
+            <ReactRouter.Link to="/" ><input type="button" value="create" onClick={ this.createPatient } /></ReactRouter.Link>
+          </div>
+        }
+      });
+
+      // patients.js
+      var Patients = React.createClass({
+
+        // local state is based on application state
+        getInitialState: function() {
+            return {patients: appState.patients };
+        },
+        render: function() {
+          var patients = this.state.patients.map(p => 
+            <div>
+            {p.firstName} {p.lastName} 
+            <div>
+            Tests:
+              <ul>
+              {p.tests.map(t => <li>{t.type}</li>)}
+              </ul>
+            </div>
+            </div>)  
+          return <div>
+          {patients}
+          <ReactRouter.Link to="/patients/new"><input type="button" value="Add" /></ReactRouter.Link>
+          </div>
+        }
+      });
+
+      //a pplication.js
+      var App = React.createClass({
+        render: function() {
+          // you could put login links,headers, footers, and stuff here
+          return <div>{ this.props.children }</div>;
+        }
+      });
+
+      // uses https://github.com/reactjs/react-router
+      ReactDOM.render((
+        <ReactRouter.Router history={ReactRouter.hashHistory}>
+          <ReactRouter.Route path="/" component={App}>
+            <ReactRouter.IndexRoute component={Patients} />
+            <ReactRouter.Route path="/patients/new" component={NewPatient} />
+          </ReactRouter.Route>
+        </ReactRouter.Router>
+      ), document.getElementById('container'))
+    </script>
+  </body>
+</html>
